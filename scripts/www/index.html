@@ -1,68 +1,582 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProbabiliLottery - 概率彩票模拟器</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>彩票号码推荐系统</title>
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #020617;
-            color: #f8fafc;
-            margin: 0;
-            overflow-x: hidden;
+            font-family: 'Arial', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
         }
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .lottery-ball {
-            display: inline-flex;
-            align-items: center;
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .controls {
+            display: flex;
             justify-content: center;
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            font-weight: 800;
-            font-size: 1.1rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
         }
-        .red-ball { background: radial-gradient(circle at 30% 30%, #ff4d4d, #b30000); }
-        .blue-ball { background: radial-gradient(circle at 30% 30%, #4da6ff, #0052a3); }
-        
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .animate-spin-slow { animation: spin 3s linear infinite; }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        select, button {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .progress-container {
+            margin: 20px 0;
+            display: none;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+        .game-result {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .game-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: bold;
+            color: white;
+        }
+        .red-number {
+            background-color: #e53935;
+        }
+        .blue-number {
+            background-color: #1e88e5;
+        }
+        .info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+        }
+        .debug-info {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #856404;
+        }
     </style>
-    <script type="importmap">
-    {
-      "imports": {
-        "react": "https://esm.sh/react@18.2.0",
-        "react/": "https://esm.sh/react@18.2.0/",
-        "react-dom": "https://esm.sh/react-dom@18.2.0",
-        "react-dom/": "https://esm.sh/react-dom@18.2.0/",
-        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-        "recharts": "https://esm.sh/recharts@2.12.7",
-        "lucide-react": "https://esm.sh/lucide-react@0.378.0",
-        "@google/genai": "https://esm.sh/@google/genai@1.34.0"
-      }
-    }
-    </script>
-<link rel="stylesheet" href="/index.css">
 </head>
 <body>
-    <div id="root">
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #020617; color: #94a3b8; font-family: system-ui, -apple-system, sans-serif;">
-            <div style="width: 48px; height: 48px; border: 3px solid rgba(59, 130, 246, 0.1); border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <h2 style="margin-top: 24px; color: #f8fafc; font-size: 1.25rem; font-weight: 600;">正在加载模拟实验环境</h2>
-            <p style="margin-top: 8px; font-size: 0.875rem;">准备 MCMC 概率矩阵中...</p>
+    <div class="container">
+        <h1>彩票号码推荐系统</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            基于马尔可夫链和蒙特卡洛方法生成号码推荐（分离红蓝球生成）
+        </p>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="gameSelect">选择玩法:</label>
+                <select id="gameSelect">
+                    <option value="all">全部玩法</option>
+                    <option value="大乐透">大乐透</option>
+                    <option value="双色球">双色球</option>
+                    <option value="快乐八">快乐八</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="sampleSize">样本数量:</label>
+                <select id="sampleSize">
+                    <option value="100000">10万组</option>
+                    <option value="500000">50万组</option>
+                    <option value="1000000" selected>100万组</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <button id="generateBtn">生成推荐号码</button>
+            </div>
+        </div>
+        
+        <div id="progressContainer" class="progress-container">
+            <div class="loading" id="loadingText">正在生成号码...</div>
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+        </div>
+        
+        <div id="results" class="results">
+            <h2>推荐号码结果</h2>
+            <div id="resultsContent"></div>
+        </div>
+        
+        <div id="debugInfo" class="debug-info" style="display: none;">
+            调试信息：<span id="debugMessage"></span>
+        </div>
+        
+        <div class="info">
+            <p><strong>注意：</strong>本系统使用马尔可夫链和蒙特卡洛方法进行号码生成和统计分析，仅供娱乐和学术研究使用。彩票结果完全随机，不存在可预测的规律。请理性购彩，量力而行。</p>
         </div>
     </div>
-    <script type="module" src="index.tsx"></script>
-<script type="module" src="/index.tsx"></script>
-</body>
-</html>
+
+    <script>
+        // 彩票规则定义
+        const gameRules = {
+            '大乐透': { redBalls: 35, blueBalls: 12, redCount: 5, blueCount: 2 },
+            '双色球': { redBalls: 33, blueBalls: 16, redCount: 6, blueCount: 1 },
+            '快乐八': { totalBalls: 80, drawCount: 20 }
+        };
+
+        // 马尔可夫链生成器
+        class MarkovGenerator {
+            constructor(gameName) {
+                this.game = gameRules[gameName];
+                this.gameName = gameName;
+                
+                // 初始化转移矩阵
+                if (gameName === '快乐八') {
+                    this.matrix = Array(this.game.totalBalls).fill().map(() => 
+                        Array(this.game.totalBalls).fill(1)
+                    );
+                } else {
+                    // 分别初始化红球和蓝球转移矩阵
+                    this.redMatrix = Array(this.game.redBalls).fill().map(() => 
+                        Array(this.game.redBalls).fill(1)
+                    );
+                    this.blueMatrix = Array(this.game.blueBalls).fill().map(() => 
+                        Array(this.game.blueBalls).fill(1)
+                    );
+                }
+            }
+            
+            generateSample() {
+                if (this.gameName === '快乐八') {
+                    // 生成快乐八号码
+                    let currentBall = Math.floor(Math.random() * this.game.totalBalls) + 1;
+                    const sample = [currentBall];
+                    
+                    for (let i = 1; i < this.game.drawCount; i++) {
+                        const rowSum = this.matrix[currentBall - 1].reduce((a, b) => a + b, 0);
+                        let rand = Math.random() * rowSum;
+                        let nextBall = 1;
+                        
+                        for (let j = 0; j < this.game.totalBalls; j++) {
+                            rand -= this.matrix[currentBall - 1][j];
+                            if (rand <= 0) {
+                                nextBall = j + 1;
+                                break;
+                            }
+                        }
+                        
+                        if (!sample.includes(nextBall)) {
+                            sample.push(nextBall);
+                            currentBall = nextBall;
+                        } else {
+                            // 如果重复则随机选择一个不在样本中的球
+                            const available = [];
+                            for (let k = 1; k <= this.game.totalBalls; k++) {
+                                if (!sample.includes(k)) available.push(k);
+                            }
+                            if (available.length > 0) {
+                                currentBall = available[Math.floor(Math.random() * available.length)];
+                                sample.push(currentBall);
+                            }
+                        }
+                    }
+                    
+                    // 随机打乱以避免顺序依赖
+                    for (let i = sample.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [sample[i], sample[j]] = [sample[j], sample[i]];
+                    }
+                    
+                    return sample.slice(0, this.game.drawCount).sort((a, b) => a - b);
+                } else {
+                    // 分别生成红球和蓝球序列
+                    // 生成红球
+                    let redCurrent = Math.floor(Math.random() * this.game.redBalls) + 1;
+                    const redSample = [redCurrent];
+                    
+                    for (let i = 1; i < this.game.redCount; i++) {
+                        const rowSum = this.redMatrix[redCurrent - 1].reduce((a, b) => a + b, 0);
+                        let rand = Math.random() * rowSum;
+                        let nextRed = 1;
+                        
+                        for (let j = 0; j < this.game.redBalls; j++) {
+                            rand -= this.redMatrix[redCurrent - 1][j];
+                            if (rand <= 0) {
+                                nextRed = j + 1;
+                                break;
+                            }
+                        }
+                        
+                        if (!redSample.includes(nextRed)) {
+                            redSample.push(nextRed);
+                            redCurrent = nextRed;
+                        } else {
+                            // 如果重复则随机选择一个不在样本中的红球
+                            const available = [];
+                            for (let k = 1; k <= this.game.redBalls; k++) {
+                                if (!redSample.includes(k)) available.push(k);
+                            }
+                            if (available.length > 0) {
+                                redCurrent = available[Math.floor(Math.random() * available.length)];
+                                redSample.push(redCurrent);
+                            }
+                        }
+                    }
+                    
+                    // 生成蓝球
+                    let blueCurrent = Math.floor(Math.random() * this.game.blueBalls) + 1;
+                    const blueSample = [blueCurrent];
+                    
+                    for (let i = 1; i < this.game.blueCount; i++) {
+                        const rowSum = this.blueMatrix[blueCurrent - 1].reduce((a, b) => a + b, 0);
+                        let rand = Math.random() * rowSum;
+                        let nextBlue = 1;
+                        
+                        for (let j = 0; j < this.game.blueBalls; j++) {
+                            rand -= this.blueMatrix[blueCurrent - 1][j];
+                            if (rand <= 0) {
+                                nextBlue = j + 1;
+                                break;
+                            }
+                        }
+                        
+                        if (!blueSample.includes(nextBlue)) {
+                            blueSample.push(nextBlue);
+                            blueCurrent = nextBlue;
+                        } else {
+                            // 如果重复则随机选择一个不在样本中的蓝球
+                            const available = [];
+                            for (let k = 1; k <= this.game.blueBalls; k++) {
+                                if (!blueSample.includes(k)) available.push(k);
+                            }
+                            if (available.length > 0) {
+                                blueCurrent = available[Math.floor(Math.random() * available.length)];
+                                blueSample.push(blueCurrent);
+                            }
+                        }
+                    }
+                    
+                    return {
+                        red: redSample.slice(0, this.game.redCount).sort((a, b) => a - b),
+                        blue: blueSample.slice(0, this.game.blueCount).sort((a, b) => a - b)
+                    };
+                }
+            }
+        }
+
+        // 蒙特卡洛生成器
+        class MonteCarloGenerator {
+            constructor(gameName) {
+                this.game = gameRules[gameName];
+                this.gameName = gameName;
+            }
+            
+            generateSample() {
+                if (this.gameName === '快乐八') {
+                    // 随机选择20个不重复的号码
+                    const numbers = Array.from({length: this.game.totalBalls}, (_, i) => i + 1);
+                    const sample = [];
+                    for (let i = 0; i < this.game.drawCount; i++) {
+                        const randomIndex = Math.floor(Math.random() * numbers.length);
+                        sample.push(numbers.splice(randomIndex, 1)[0]);
+                    }
+                    return sample.sort((a, b) => a - b);
+                } else {
+                    // 分别生成红球和蓝球
+                    // 生成红球
+                    const redNumbers = Array.from({length: this.game.redBalls}, (_, i) => i + 1);
+                    const redSample = [];
+                    for (let i = 0; i < this.game.redCount; i++) {
+                        const randomIndex = Math.floor(Math.random() * redNumbers.length);
+                        redSample.push(redNumbers.splice(randomIndex, 1)[0]);
+                    }
+                    
+                    // 生成蓝球
+                    const blueNumbers = Array.from({length: this.game.blueBalls}, (_, i) => i + 1);
+                    const blueSample = [];
+                    for (let i = 0; i < this.game.blueCount; i++) {
+                        const randomIndex = Math.floor(Math.random() * blueNumbers.length);
+                        blueSample.push(blueNumbers.splice(randomIndex, 1)[0]);
+                    }
+                    
+                    return {
+                        red: redSample.sort((a, b) => a - b),
+                        blue: blueSample.sort((a, b) => a - b)
+                    };
+                }
+            }
+        }
+
+        // 分别统计红球和蓝球频率
+        function countFrequenciesSeparately(samples, gameName) {
+            if (gameName === '快乐八') {
+                // 统计快乐八号码频率
+                const counts = {};
+                for (const sample of samples) {
+                    for (const num of sample) {
+                        counts[num] = (counts[num] || 0) + 1;
+                    }
+                }
+                return { all: counts };
+            } else {
+                // 分别统计红球和蓝球频率
+                const redCounts = {};
+                const blueCounts = {};
+                
+                for (const sample of samples) {
+                    for (const num of sample.red) {
+                        redCounts[num] = (redCounts[num] || 0) + 1;
+                    }
+                    for (const num of sample.blue) {
+                        blueCounts[num] = (blueCounts[num] || 0) + 1;
+                    }
+                }
+                
+                return { red: redCounts, blue: blueCounts };
+            }
+        }
+
+        // 获取最频繁的号码
+        function getTopNumbers(frequencies, count) {
+            const entries = Object.entries(frequencies).map(([num, freq]) => [parseInt(num), freq]);
+            entries.sort((a, b) => b[1] - a[1]); // 按频率降序排列
+            return entries.slice(0, count).map(entry => entry[0]).sort((a, b) => a - b);
+        }
+
+        // 生成推荐号码
+        async function generateRecommendations(gameName, sampleSize) {
+            const markovGen = new MarkovGenerator(gameName);
+            const mcGen = new MonteCarloGenerator(gameName);
+            
+            const samples = [];
+            const halfSize = Math.floor(sampleSize / 2);
+            
+            // 生成马尔可夫序列
+            for (let i = 0; i < halfSize; i++) {
+                samples.push(markovGen.generateSample());
+                // 每10000次更新一次进度
+                if (i % 10000 === 0) {
+                    const progress = Math.floor((i / halfSize) * 50);
+                    document.getElementById('progressFill').style.width = `${progress}%`;
+                    await new Promise(resolve => setTimeout(resolve, 0)); // 让界面更新
+                }
+            }
+            
+            // 生成蒙特卡洛序列
+            for (let i = 0; i < halfSize; i++) {
+                samples.push(mcGen.generateSample());
+                // 每10000次更新一次进度
+                if (i % 10000 === 0) {
+                    const progress = 50 + Math.floor((i / halfSize) * 50);
+                    document.getElementById('progressFill').style.width = `${progress}%`;
+                    await new Promise(resolve => setTimeout(resolve, 0)); // 让界面更新
+                }
+            }
+            
+            // 分别统计频率
+            const frequencies = countFrequenciesSeparately(samples, gameName);
+            
+            // 获取推荐号码
+            if (gameName === '快乐八') {
+                return getTopNumbers(frequencies.all, gameRules[gameName].drawCount);
+            } else {
+                // 分别获取红球和蓝球的推荐
+                const recommendedRed = getTopNumbers(frequencies.red, gameRules[gameName].redCount);
+                const recommendedBlue = getTopNumbers(frequencies.blue, gameRules[gameName].blueCount);
+                
+                return {
+                    red: recommendedRed,
+                    blue: recommendedBlue
+                };
+            }
+        }
+
+        // 显示结果
+        function displayResults(results) {
+            const container = document.getElementById('resultsContent');
+            container.innerHTML = '';
+            
+            for (const [gameName, recommendation] of Object.entries(results)) {
+                const gameDiv = document.createElement('div');
+                gameDiv.className = 'game-result';
+                
+                const title = document.createElement('div');
+                title.className = 'game-title';
+                title.textContent = gameName;
+                gameDiv.appendChild(title);
+                
+                const numbersDiv = document.createElement('div');
+                numbersDiv.className = 'numbers';
+                
+                if (gameName === '快乐八') {
+                    recommendation.forEach(num => {
+                        const numSpan = document.createElement('span');
+                        numSpan.className = 'number red-number';
+                        numSpan.textContent = num;
+                        numbersDiv.appendChild(numSpan);
+                    });
+                } else {
+                    // 显示红球
+                    recommendation.red.forEach(num => {
+                        const numSpan = document.createElement('span');
+                        numSpan.className = 'number red-number';
+                        numSpan.textContent = num;
+                        numbersDiv.appendChild(numSpan);
+                    });
+                    
+                    // 显示分隔符
+                    const separator = document.createElement('span');
+                    separator.textContent = '|';
+                    separator.style.margin = '0 10px';
+                    separator.style.color = '#999';
+                    numbersDiv.appendChild(separator);
+                    
+                    // 显示蓝球
+                    recommendation.blue.forEach(num => {
+                        const numSpan = document.createElement('span');
+                        numSpan.className = 'number blue-number';
+                        numSpan.textContent = num;
+                        numbersDiv.appendChild(numSpan);
+                    });
+                }
+                
+                gameDiv.appendChild(numbersDiv);
+                container.appendChild(gameDiv);
+            }
+            
+            document.getElementById('results').style.display = 'block';
+        }
+
+        // 主生成函数
+        async function startGeneration() {
+            // 显示调试信息
+            document.getElementById('debugInfo').style.display = 'block';
+            document.getElementById('debugMessage').textContent = '开始生成号码...';
+            
+            const gameSelect = document.getElementById('gameSelect');
+            const sampleSizeSelect = document.getElementById('sampleSize');
+            const game = gameSelect.value;
+            const sampleSize = parseInt(sampleSizeSelect.value);
+            
+            // 显示进度条
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('progressFill').style.width = '0%';
+            
+            // 禁用按钮
+            document.getElementById('generateBtn').disabled = true;
+            
+            try {
+                let results = {};
+                
+                if (game === 'all') {
+                    // 生成所有游戏的推荐
+                    for (const gameName of Object.keys(gameRules)) {
+                        document.getElementById('loadingText').textContent = `正在生成 ${gameName} 号码...`;
+                        document.getElementById('debugMessage').textContent = `正在生成 ${gameName} 号码...`;
+                        results[gameName] = await generateRecommendations(gameName, sampleSize);
+                    }
+                } else {
+                    document.getElementById('loadingText').textContent = `正在生成 ${game} 号码...`;
+                    document.getElementById('debugMessage').textContent = `正在生成 ${game} 号码...`;
+                    results[game] = await generateRecommendations(game, sampleSize);
+                }
+                
+                // 显示结果
+                displayResults(results);
+                
+                // 隐藏进度条
+                document.getElementById('progressFill').style.width = '100%';
+                setTimeout(() => {
+                    document.getElementById('progressContainer').style.display = 'none';
+                    document.getElementById('debugInfo').style.display = 'none';
+                }, 500);
+            } catch (error) {
+                console.error('生成过程中出现错误:', error);
+                document.getElementById('loadingText').textContent = '生成失败，请重试';
+                document.getElementById('debugMessage').textContent = `错误: ${error.message}`;
+                setTimeout(() => {
+                    document.getElementById('progressContainer').style.display = 'none';
+                }, 2000);
+            } finally {
+                // 重新启用按钮
+                document.getElementById('generateBtn').disabled = false;
+            }
+        }
+
+        // 页面加载完成后绑定事件
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('generateBtn').addEventListener('click', startGeneration);
+            document.getElementById('debugMessage').textContent = '页面加载完成，等待生成请求...';
+        });
+    </script>
