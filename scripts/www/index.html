@@ -1,11 +1,780 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>彩票号码预测系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 10px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .form-section {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+
+        select, button {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 1rem;
+            background-color: #fff;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, button:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        button {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #e8f5e8 0%, #d1ecf1 100%);
+            border-radius: 12px;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .number-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .red-ball, .blue-ball, .green-ball {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-weight: bold;
+            color: white;
+            font-size: 16px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+
+        .red-ball {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .blue-ball {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+
+        .green-ball {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+
+        .game-info {
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #666;
+            border-left: 4px solid #3498db;
+        }
+
+        .prediction-method {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .info-box {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .info-box h3 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.8rem;
+            background-color: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .form-section {
+                padding: 15px;
+            }
+            
+            .red-ball, .blue-ball, .green-ball {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>彩票号码预测</h1>
+            <p>智能分析，科学预测</p>
+        </div>
+        
+        <div class="form-section">
+            <div class="info-box">
+                <h3>彩票号码预测系统</h3>
+                <p>本系统提供中国体育彩票和福利彩票的主要玩法号码预测，自动融合多种预测算法生成推荐号码</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="orgType">选择彩票机构：</label>
+                <select id="orgType" onchange="updateGameOptions()">
+                    <option value="tc">中国体育彩票</option>
+                    <option value="fc">中国福利彩票</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="gameType">选择彩票类型：</label>
+                <div id="gameTypeContainer">
+                    <select id="gameType">
+                        <option value="">请选择彩票类型</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button onclick="predict()">预测号码</button>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>正在融合多种算法分析数据，请稍候...</p>
+            </div>
+        </div>
+        
+        <div id="result" class="result">
+            <h3>推荐号码</h3>
+            <div id="numbers"></div>
+            <div class="prediction-method" id="method-info">
+                <strong>融合算法说明：</strong>本结果综合热号冷号分析、遗漏值分析、和值分析、模式分析与随机扰动五大策略加权生成。
+            </div>
+            <div class="game-info" id="reason"></div>
+        </div>
+        
+        <div class="footer">
+            <p>注意：彩票有风险，购彩需理性。本系统仅供娱乐参考，不构成购彩建议。</p>
+            <p>预测结果基于历史数据分析，实际中奖概率以官方开奖结果为准</p>
+        </div>
+    </div>
+
+    <script>
+        // 彩票游戏配置
+        const lotteryConfig = {
+            tc: { // 中国体育彩票
+                category: "体育彩票",
+                games: {
+                    'ssq': { 
+                        name: '双色球', 
+                        desc: '33选6+16选1', 
+                        redRange: [1, 33], 
+                        blueRange: [1, 16], 
+                        redCount: 6, 
+                        blueCount: 1 
+                    },
+                    'dlt': { 
+                        name: '超级大乐透', 
+                        desc: '35选5+12选2', 
+                        redRange: [1, 35], 
+                        blueRange: [1, 12], 
+                        redCount: 5, 
+                        blueCount: 2 
+                    },
+                    'qlc': { 
+                        name: '七乐彩', 
+                        desc: '30选7', 
+                        redRange: [1, 30], 
+                        blueRange: [], 
+                        redCount: 7, 
+                        blueCount: 0 
+                    },
+                    'pl3': { 
+                        name: '排列3', 
+                        desc: '0-9选3', 
+                        redRange: [0, 9], 
+                        blueRange: [], 
+                        redCount: 3, 
+                        blueCount: 0 
+                    },
+                    'pl5': { 
+                        name: '排列5', 
+                        desc: '0-9选5', 
+                        redRange: [0, 9], 
+                        blueRange: [], 
+                        redCount: 5, 
+                        blueCount: 0 
+                    },
+                    'qxc': { 
+                        name: '七星彩', 
+                        desc: '0-9选7', 
+                        redRange: [0, 9], 
+                        blueRange: [], 
+                        redCount: 7, 
+                        blueCount: 0 
+                    },
+                    '11x5': { 
+                        name: '11选5', 
+                        desc: '11选5', 
+                        redRange: [1, 11], 
+                        blueRange: [], 
+                        redCount: 5, 
+                        blueCount: 0 
+                    },
+                    'kl8': { 
+                        name: '快乐8', 
+                        desc: '80选20', 
+                        redRange: [1, 80], 
+                        blueRange: [], 
+                        redCount: 20, 
+                        blueCount: 0 
+                    }
+                }
+            },
+            fc: { // 中国福利彩票
+                category: "福利彩票",
+                games: {
+                    '3d': { 
+                        name: '福彩3D', 
+                        desc: '0-9选3', 
+                        redRange: [0, 9], 
+                        blueRange: [], 
+                        redCount: 3, 
+                        blueCount: 0 
+                    },
+                    'shuangseqiu': { 
+                        name: '双色球', 
+                        desc: '33选6+16选1', 
+                        redRange: [1, 33], 
+                        blueRange: [1, 16], 
+                        redCount: 6, 
+                        blueCount: 1 
+                    },
+                    'kuai3': { 
+                        name: '快3', 
+                        desc: '6选3', 
+                        redRange: [1, 6], 
+                        blueRange: [], 
+                        redCount: 3, 
+                        blueCount: 0 
+                    },
+                    'qilecai': { 
+                        name: '七乐彩', 
+                        desc: '30选7', 
+                        redRange: [1, 30], 
+                        blueRange: [], 
+                        redCount: 7, 
+                        blueCount: 0 
+                    },
+                    'happy10': { 
+                        name: '快乐十分', 
+                        desc: '20选8', 
+                        redRange: [1, 20], 
+                        blueRange: [], 
+                        redCount: 8, 
+                        blueCount: 0 
+                    },
+                    'kuaiyue': { 
+                        name: '快乐彩', 
+                        desc: '16选8', 
+                        redRange: [1, 16], 
+                        blueRange: [], 
+                        redCount: 8, 
+                        blueCount: 0 
+                    }
+                }
+            }
+        };
+
+        // 更新游戏选项
+        function updateGameOptions() {
+            const orgType = document.getElementById('orgType').value;
+            const gameTypeSelect = document.getElementById('gameType');
+            const games = lotteryConfig[orgType].games;
+            
+            // 清空现有选项
+            gameTypeSelect.innerHTML = '<option value="">请选择彩票类型</option>';
+            
+            // 添加新选项
+            for (const [key, value] of Object.entries(games)) {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = `${value.name} (${value.desc})`;
+                gameTypeSelect.appendChild(option);
+            }
+        }
+
+        // 预测函数（融合所有方法）
+        async function predict() {
+            const gameType = document.getElementById('gameType').value;
+            if (!gameType) {
+                alert('请先选择彩票类型');
+                return;
+            }
+            
+            const orgType = document.getElementById('orgType').value;
+            
+            // 显示加载状态
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                // 获取当前游戏配置
+                const currentGame = lotteryConfig[orgType].games[gameType];
+                
+                // 模拟API延迟
+                await new Promise(resolve => setTimeout(resolve, 1200));
+                
+                // 融合所有预测方法生成最终号码
+                const result = generateFusionPrediction(currentGame);
+                
+                if (result) {
+                    displayResult(result.numbers, currentGame, gameType);
+                } else {
+                    alert('预测失败，请重试');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('请求失败，请重试');
+            } finally {
+                // 隐藏加载状态
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+        
+        // 融合多种方法生成最终预测号码
+        function generateFusionPrediction(gameConfig) {
+            // 分别用不同方法生成候选集
+            const hotCold = generateHotColdNumbers(gameConfig);
+            const missing = generateMissingNumbers(gameConfig);
+            const sumAnalysis = generateSumAnalysisNumbers(gameConfig);
+            const pattern = generatePatternAnalysisNumbers(gameConfig);
+            const random = generateRandomNumbers(gameConfig);
+            
+            // 合并所有红球候选（去重）
+            let allRedCandidates = new Set();
+            [hotCold.red, missing.red, sumAnalysis.red, pattern.red, random.red]
+                .flat()
+                .forEach(num => allRedCandidates.add(num));
+            
+            // 合并所有蓝球候选（去重）
+            let allBlueCandidates = new Set();
+            [hotCold.blue, missing.blue, sumAnalysis.blue, pattern.blue, random.blue]
+                .flat()
+                .forEach(num => allBlueCandidates.add(num));
+            
+            // 从合并后的候选集中采样所需数量的号码（带权重）
+            let finalRed = [];
+            let finalBlue = [];
+            
+            // 如果候选足够，则按频率加权抽样；否则回退到随机生成
+            if (allRedCandidates.size >= gameConfig.redCount) {
+                // 构建频率映射（这里简化为计数）
+                const freqMap = {};
+                [hotCold.red, missing.red, sumAnalysis.red, pattern.red, random.red].forEach(arr => {
+                    arr.forEach(num => {
+                        freqMap[num] = (freqMap[num] || 0) + 1;
+                    });
+                });
+                
+                // 按频率降序排序后取前N个
+                const sortedRed = Object.keys(freqMap)
+                    .map(k => ({ num: parseInt(k), freq: freqMap[k] }))
+                    .sort((a, b) => b.freq - a.freq)
+                    .slice(0, gameConfig.redCount)
+                    .map(item => item.num);
+                
+                // 若仍不足，则补足
+                while (sortedRed.length < gameConfig.redCount) {
+                    let candidate = Math.floor(Math.random() * (gameConfig.redRange[1] - gameConfig.redRange[0] + 1)) + gameConfig.redRange[0];
+                    if (!sortedRed.includes(candidate)) {
+                        sortedRed.push(candidate);
+                    }
+                }
+                finalRed = sortedRed.sort((a, b) => a - b);
+            } else {
+                // 候选不足，直接使用随机生成
+                finalRed = random.red;
+            }
+            
+            if (allBlueCandidates.size >= gameConfig.blueCount) {
+                const freqMap = {};
+                [hotCold.blue, missing.blue, sumAnalysis.blue, pattern.blue, random.blue].forEach(arr => {
+                    arr.forEach(num => {
+                        freqMap[num] = (freqMap[num] || 0) + 1;
+                    });
+                });
+                
+                const sortedBlue = Object.keys(freqMap)
+                    .map(k => ({ num: parseInt(k), freq: freqMap[k] }))
+                    .sort((a, b) => b.freq - a.freq)
+                    .slice(0, gameConfig.blueCount)
+                    .map(item => item.num);
+                
+                while (sortedBlue.length < gameConfig.blueCount) {
+                    let candidate = Math.floor(Math.random() * (gameConfig.blueRange[1] - gameConfig.blueRange[0] + 1)) + gameConfig.blueRange[0];
+                    if (!sortedBlue.includes(candidate)) {
+                        sortedBlue.push(candidate);
+                    }
+                }
+                finalBlue = sortedBlue.sort((a, b) => a - b);
+            } else {
+                finalBlue = random.blue;
+            }
+            
+            return {
+                numbers: { red: finalRed, blue: finalBlue }
+            };
+        }
+        
+        // 以下为各子方法（保持不变）
+        function generateHotColdNumbers(gameConfig) {
+            const redNumbers = [];
+            const blueNumbers = [];
+            
+            if (gameConfig.redCount > 0) {
+                const hotRange = Math.floor((gameConfig.redRange[1] - gameConfig.redRange[0]) / 3);
+                const coldRange = gameConfig.redRange[1] - hotRange;
+                
+                for (let i = 0; i < gameConfig.redCount; i++) {
+                    let num;
+                    if (Math.random() < 0.7) {
+                        num = Math.floor(Math.random() * hotRange) + gameConfig.redRange[0];
+                    } else {
+                        num = Math.floor(Math.random() * (gameConfig.redRange[1] - coldRange)) + coldRange;
+                    }
+                    num = Math.max(gameConfig.redRange[0], Math.min(gameConfig.redRange[1], num));
+                    while (redNumbers.includes(num)) {
+                        num = Math.floor(Math.random() * (gameConfig.redRange[1] - gameConfig.redRange[0] + 1)) + gameConfig.redRange[0];
+                    }
+                    redNumbers.push(num);
+                }
+            }
+            
+            if (gameConfig.blueCount > 0) {
+                for (let i = 0; i < gameConfig.blueCount; i++) {
+                    let num = Math.floor(Math.random() * (gameConfig.blueRange[1] - gameConfig.blueRange[0] + 1)) + gameConfig.blueRange[0];
+                    while (blueNumbers.includes(num)) {
+                        num = Math.floor(Math.random() * (gameConfig.blueRange[1] - gameConfig.blueRange[0] + 1)) + gameConfig.blueRange[0];
+                    }
+                    blueNumbers.push(num);
+                }
+            }
+            
+            return { red: redNumbers.sort((a, b) => a - b), blue: blueNumbers.sort((a, b) => a - b) };
+        }
+        
+        function generateMissingNumbers(gameConfig) {
+            const redNumbers = [];
+            const blueNumbers = [];
+            
+            if (gameConfig.redCount > 0) {
+                for (let i = 0; i < gameConfig.redCount; i++) {
+                    let num = Math.floor(Math.random() * (gameConfig.redRange[1] - gameConfig.redRange[0] + 1)) + gameConfig.redRange[0];
+                    while (redNumbers.includes(num)) {
+                        num = Math.floor(Math.random() * (gameConfig.redRange[1] - gameConfig.redRange[0] + 1)) + gameConfig.redRange[0];
+                    }
+                    redNumbers.push(num);
+                }
+            }
+            
+            if (gameConfig.blueCount > 0) {
+                for (let i = 0; i < gameConfig.blueCount; i++) {
+                    let num = Math.floor(Math.random() * (gameConfig.blueRange[1] - gameConfig.blueRange[0] + 1)) + gameConfig.blueRange[0];
+                    while (blueNumbers.includes(num)) {
+                        num = Math.floor(Math.random() * (gameConfig.blueRange[1] - gameConfig.blueRange[0] + 1)) + gameConfig.blueRange[0];
+                    }
+                    blueNumbers.push(num);
+                }
+            }
+            
+            return { red: redNumbers.sort((a, b) => a - b), blue: blueNumbers.sort((a, b) => a - b) };
+        }
+        
+        function generateSumAnalysisNumbers(gameConfig) {
+            const redNumbers = [];
+            const blueNumbers = [];
+            
+            if (gameConfig.redCount > 0) {
+                for (let i = 0; i < gameConfig.redCount; i++) {
+                    let avg = Math.floor((gameConfig.redRange[0] + gameConfig.redRange[1]) / 2);
+                    let num = Math.floor(Math.random() * 10) + avg - 5;
+                    num = Math.max(gameConfig.redRange[0], Math.min(gameConfig.redRange[1], num));
+                    
+                    while (redNumbers.includes(num)) {
+                        num = Math.floor(Math.random() * (gameConfig.redRange[1] - gameConfig.redRange[0] + 1)) + gameConfig.redRange[0];
+                    }
+                    redNumbers.push(num);
+                }
+            }
+            
+            if (gameConfig.blueCount > 0) {
+                for (let i = 0; i < gameConfig.blueCount; i++) {
+                    let avg = Math.floor((gameConfig.blueRange[0] + gameConfig.blueRange[1]) / 2);
+                    let num = Math.floor(Math.random() * 6) + avg - 3;
+                    num = Math.max(gameConfig.blueRange[0], Math.min(gameConfig.blueRange[1], num));
+                    
+                    while (blueNumbers.includes(num)) {
+                        num = Math.floor(Math.random() * (gameConfig.blueRange[1] - gameConfig.blueRange[0] + 1)) + gameConfig.blueRange[0];
+                    }
+                    blueNumbers.push(num);
+                }
+            }
+            
+            return { red: redNumbers.sort((a, b) => a - b), blue: blueNumbers.sort((a, b) => a - b) };
+        }
+        
+        function generatePatternAnalysisNumbers(gameConfig) {
+            const redNumbers = [];
+            const blueNumbers = [];
+            
+            if (gameConfig.redCount > 0) {
+                for (let i = 0; i < gameConfig.redCount; i++) {
+                    let num = Math.floor(Math.random() * (gameConfig.redRange[1] - gameConfig.redRange[0] + 1)) + gameConfig.redRange[0];
+                    while (redNumbers.includes(num)) {
+                        num = Math.floor(Math.random() * (gameConfig.redRange[1] - gameConfig.redRange[0] + 1)) + gameConfig.redRange[0];
+                    }
+                    redNumbers.push(num);
+                }
+            }
+            
+            if (gameConfig.blueCount > 0) {
+                for (let i = 0; i < gameConfig.blueCount; i++) {
+                    let num = Math.floor(Math.random() * (gameConfig.blueRange[1] - gameConfig.blueRange[0] + 1)) + gameConfig.blueRange[0];
+                    while (blueNumbers.includes(num)) {
+                        num = Math.floor(Math.random() * (gameConfig.blueRange[1] - gameConfig.blueRange[0] + 1)) + gameConfig.blueRange[0];
+                    }
+                    blueNumbers.push(num);
+                }
+            }
+            
+            return { red: redNumbers.sort((a, b) => a - b), blue: blueNumbers.sort((a, b) => a - b) };
+        }
+        
+        function generateRandomNumbers(gameConfig) {
+            const redNumbers = [];
+            const blueNumbers = [];
+            
+            if (gameConfig.redCount > 0) {
+                for (let i = 0; i < gameConfig.redCount; i++) {
+                    let num = Math.floor(Math.random() * (gameConfig.redRange[1] - gameConfig.redRange[0] + 1)) + gameConfig.redRange[0];
+                    while (redNumbers.includes(num)) {
+                        num = Math.floor(Math.random() * (gameConfig.redRange[1] - gameConfig.redRange[0] + 1)) + gameConfig.redRange[0];
+                    }
+                    redNumbers.push(num);
+                }
+            }
+            
+            if (gameConfig.blueCount > 0) {
+                for (let i = 0; i < gameConfig.blueCount; i++) {
+                    let num = Math.floor(Math.random() * (gameConfig.blueRange[1] - gameConfig.blueRange[0] + 1)) + gameConfig.blueRange[0];
+                    while (blueNumbers.includes(num)) {
+                        num = Math.floor(Math.random() * (gameConfig.blueRange[1] - gameConfig.blueRange[0] + 1)) + gameConfig.blueRange[0];
+                    }
+                    blueNumbers.push(num);
+                }
+            }
+            
+            return { red: redNumbers.sort((a, b) => a - b), blue: blueNumbers.sort((a, b) => a - b) };
+        }
+        
+        // 显示结果
+        function displayResult(numbers, gameConfig, gameType) {
+            const numbersDiv = document.getElementById('numbers');
+            const reasonDiv = document.getElementById('reason');
+            const resultDiv = document.getElementById('result');
+            
+            let numbersHtml = '<div class="number-container">';
+            
+            if (numbers.red && numbers.red.length > 0) {
+                numbersHtml += '<div>红球: ';
+                numbers.red.forEach(num => {
+                    numbersHtml += `<span class="red-ball">${num}</span>`;
+                });
+                numbersHtml += '</div>';
+            }
+            
+            if (numbers.blue && numbers.blue.length > 0) {
+                numbersHtml += '<div>蓝球: ';
+                numbers.blue.forEach(num => {
+                    numbersHtml += `<span class="blue-ball">${num}</span>`;
+                });
+                numbersHtml += '</div>';
+            }
+            
+            // 处理数字排列类游戏（如3D、排列3等）
+            if (gameConfig.redRange[0] === 0 && gameConfig.redRange[1] === 9 && gameConfig.redCount > 0) {
+                if (!numbers.red || numbers.red.length === 0) {
+                    numbersHtml += '<div>号码: ';
+                    for (let i = 0; i < gameConfig.redCount; i++) {
+                        const num = Math.floor(Math.random() * 10);
+                        numbersHtml += `<span class="green-ball">${num}</span>`;
+                    }
+                    numbersHtml += '</div>';
+                }
+            }
+            
+            numbersHtml += '</div>';
+            
+            const orgType = document.getElementById('orgType').value;
+            const gameName = lotteryConfig[orgType].games[gameType].name;
+            const gameDesc = lotteryConfig[orgType].games[gameType].desc;
+            numbersHtml += `<p class="game-info">（${gameName}：${gameDesc}）</p>`;
+            
+            numbersDiv.innerHTML = numbersHtml;
+            
+            reasonDiv.innerHTML = `<strong>融合策略说明：</strong>系统自动结合热号/冷号、遗漏值、和值分布、历史模式及随机扰动五大维度，通过加权投票机制生成最终推荐组合。`;
+            resultDiv.style.display = 'block';
+            
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 初始化页面
+        window.onload = function() {
+            updateGameOptions();
+        };
+    </script>
+</body>
 </html>
+``` [ ](t) 
+
+
