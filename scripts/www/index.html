@@ -1,11 +1,789 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus</title>
-    </head>
-    <body>
-        PakePlus
-    </body>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>彩票号码生成与概率分析系统</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+            align-items: stretch;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        label {
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .switch-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .switch-label {
+            flex: 1;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #2ecc71;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .results {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .result-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .section-title {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            font-size: 1.1rem;
+        }
+        
+        .number {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            line-height: 35px;
+            text-align: center;
+            background: #3498db;
+            color: white;
+            border-radius: 50%;
+            margin: 2px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .red-number {
+            background: #e74c3c !important;
+        }
+        
+        .blue-number {
+            background: #3498db !important;
+        }
+        
+        .warning {
+            background: #f39c12;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 4px;
+            text-align: center;
+        }
+        
+        th {
+            background: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #2ecc71;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .kl8-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .kl8-option {
+            flex: 1;
+            padding: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .kl8-option.active {
+            background: #3498db;
+            color: white;
+        }
+        
+        @media (min-width: 768px) {
+            .controls {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            
+            .control-group {
+                flex: 1 1 45%;
+            }
+            
+            .switch-container {
+                flex: 1 1 100%;
+            }
+            
+            .results {
+                flex-direction: row;
+            }
+            
+            .result-section {
+                flex: 1;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .number {
+                width: 30px;
+                height: 30px;
+                line-height: 30px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>彩票号码生成与概率分析</h1>
+        
+        <div class="warning">
+            ⚠️ 重要提醒：彩票结果完全随机，任何生成或分析方法都无法提高中奖概率。此系统仅供学习和技术演示使用！
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>彩票类型:</label>
+                <select id="gameType" onchange="handleGameTypeChange()">
+                    <option value="dlt">大乐透</option>
+                    <option value="ssq">双色球</option>
+                    <option value="kl8">快乐8</option>
+                    <option value="qxz">七星彩</option>
+                </select>
+            </div>
+            
+            <div class="control-group" id="kl8OptionsGroup" style="display:none;">
+                <label>快乐8选项:</label>
+                <div class="kl8-options">
+                    <div class="kl8-option active" id="kl8Select5" onclick="selectKl8Option('5')">选五</div>
+                    <div class="kl8-option" id="kl8Select10" onclick="selectKl8Option('10')">选十</div>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label>LSTM层数:</label>
+                <select id="lstmLayers">
+                    <option value="1">1层</option>
+                    <option value="2" selected>2层</option>
+                    <option value="3">3层</option>
+                    <option value="4">4层</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label>马尔科夫链模拟次数:</label>
+                <input type="number" id="markovIterations" value="100000" min="1000" max="10000000">
+            </div>
+            
+            <div class="control-group">
+                <label>蒙特卡洛模拟次数:</label>
+                <input type="number" id="monteCarloIterations" value="100000" min="1000" max="10000000">
+            </div>
+            
+            <div class="control-group">
+                <label>Top-K数量:</label>
+                <input type="number" id="topK" value="10" min="1" max="50">
+            </div>
+            
+            <div class="switch-container">
+                <div class="switch-label">
+                    <label>CRF模拟:</label>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="crfToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <button onclick="startAnalysis()">开始分析</button>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="results">
+            <div class="result-section">
+                <h3 class="section-title">Top-K 推荐组合</h3>
+                <div id="topKResults"></div>
+                
+                <h3 class="section-title">红色号码概率分析</h3>
+                <table id="redProbabilityTable">
+                    <thead>
+                        <tr>
+                            <th>号码</th>
+                            <th>出现次数</th>
+                            <th>出现概率</th>
+                        </tr>
+                    </thead>
+                    <tbody id="redProbabilityBody"></tbody>
+                </table>
+            </div>
+            
+            <div class="result-section">
+                <h3 class="section-title">蓝色号码概率分析</h3>
+                <table id="blueProbabilityTable">
+                    <thead>
+                        <tr>
+                            <th>号码</th>
+                            <th>出现次数</th>
+                            <th>出现概率</th>
+                        </tr>
+                    </thead>
+                    <tbody id="blueProbabilityBody"></tbody>
+                </table>
+                
+                <h3 class="section-title">号码出现概率分析</h3>
+                <table id="allProbabilityTable">
+                    <thead>
+                        <tr>
+                            <th>号码</th>
+                            <th>出现次数</th>
+                            <th>出现概率</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allProbabilityBody"></tbody>
+                </table>
+                
+                <h3 class="section-title">生成的号码组合样本</h3>
+                <div id="sampleCombinations"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 当前选中的快乐8选项
+        let currentKl8Option = '5'; // 默认选五
+        
+        // 游戏规则定义
+        const gameRules = {
+            dlt: {
+                name: "大乐透",
+                redBalls: { count: 5, range: [1, 35] },
+                blueBalls: { count: 2, range: [1, 12] }
+            },
+            ssq: {
+                name: "双色球", 
+                redBalls: { count: 6, range: [1, 33] },
+                blueBalls: { count: 1, range: [1, 16] }
+            },
+            kl8: {
+                name: "快乐8",
+                options: {
+                    '5': { count: 5, range: [1, 80] },
+                    '10': { count: 10, range: [1, 80] }
+                }
+            },
+            qxz: {
+                name: "七星彩",
+                digits: { count: 7, range: [0, 9] }
+            }
+        };
+
+        // 处理游戏类型变化
+        function handleGameTypeChange() {
+            const gameType = document.getElementById('gameType').value;
+            const kl8OptionsGroup = document.getElementById('kl8OptionsGroup');
+            
+            if (gameType === 'kl8') {
+                kl8OptionsGroup.style.display = 'block';
+            } else {
+                kl8OptionsGroup.style.display = 'none';
+            }
+        }
+
+        // 选择快乐8选项
+        function selectKl8Option(option) {
+            currentKl8Option = option;
+            
+            // 更新UI状态
+            document.getElementById('kl8Select5').classList.toggle('active', option === '5');
+            document.getElementById('kl8Select10').classList.toggle('active', option === '10');
+        }
+
+        // 生成单个彩票组合
+        function generateCombination(gameType) {
+            const rule = gameRules[gameType];
+            let combination = {};
+
+            switch (gameType) {
+                case 'dlt':
+                    combination.red = generateUniqueNumbers(rule.redBalls.range[0], rule.redBalls.range[1], rule.redBalls.count);
+                    combination.blue = generateUniqueNumbers(rule.blueBalls.range[0], rule.blueBalls.range[1], rule.blueBalls.count);
+                    break;
+                case 'ssq':
+                    combination.red = generateUniqueNumbers(rule.redBalls.range[0], rule.redBalls.range[1], rule.redBalls.count);
+                    combination.blue = generateUniqueNumbers(rule.blueBalls.range[0], rule.blueBalls.range[1], rule.blueBalls.count);
+                    break;
+                case 'kl8':
+                    const kl8Rule = rule.options[currentKl8Option];
+                    combination.all = generateUniqueNumbers(kl8Rule.range[0], kl8Rule.range[1], kl8Rule.count);
+                    break;
+                case 'qxz':
+                    combination.digits = Array.from({length: rule.digits.count}, () => 
+                        Math.floor(Math.random() * (rule.digits.range[1] - rule.digits.range[0] + 1)) + rule.digits.range[0]
+                    );
+                    break;
+            }
+
+            return combination;
+        }
+
+        // 生成唯一数字数组
+        function generateUniqueNumbers(min, max, count) {
+            const numbers = new Set();
+            while (numbers.size < count) {
+                const num = Math.floor(Math.random() * (max - min + 1)) + min;
+                numbers.add(num);
+            }
+            return Array.from(numbers).sort((a, b) => a - b);
+        }
+
+        // 马尔科夫链模拟
+        function markovChainSimulation(gameType, iterations) {
+            const results = [];
+            const progressStep = iterations / 100;
+            
+            for (let i = 0; i < iterations; i++) {
+                if (i % progressStep === 0) {
+                    const progress = (i / iterations) * 100;
+                    document.getElementById('progressFill').style.width = progress + '%';
+                }
+                
+                results.push(generateCombination(gameType));
+            }
+            
+            return results;
+        }
+
+        // 蒙特卡洛模拟
+        function monteCarloSimulation(gameType, iterations) {
+            const results = [];
+            const progressStep = iterations / 100;
+            
+            for (let i = 0; i < iterations; i++) {
+                if (i % progressStep === 0) {
+                    const progress = (i / iterations) * 100;
+                    document.getElementById('progressFill').style.width = progress + '%';
+                }
+                
+                results.push(generateCombination(gameType));
+            }
+            
+            return results;
+        }
+
+        // 统计号码出现频率
+        function analyzeFrequencies(results, gameType) {
+            const redFreq = {};
+            const blueFreq = {};
+            const allFreq = {};
+
+            results.forEach(result => {
+                switch (gameType) {
+                    case 'dlt':
+                    case 'ssq':
+                        // 统计红球
+                        result.red.forEach(num => {
+                            redFreq[num] = (redFreq[num] || 0) + 1;
+                            allFreq[num] = (allFreq[num] || 0) + 1;
+                        });
+                        // 统计蓝球
+                        result.blue.forEach(num => {
+                            blueFreq[num] = (blueFreq[num] || 0) + 1;
+                            allFreq[num] = (allFreq[num] || 0) + 1;
+                        });
+                        break;
+                    case 'kl8':
+                        result.all.forEach(num => {
+                            allFreq[num] = (allFreq[num] || 0) + 1;
+                        });
+                        break;
+                    case 'qxz':
+                        result.digits.forEach(num => {
+                            allFreq[num] = (allFreq[num] || 0) + 1;
+                        });
+                        break;
+                }
+            });
+
+            return { redFreq, blueFreq, allFreq };
+        }
+
+        // 计算组合评分（基于频率）
+        function calculateCombinationScore(combination, frequencies, gameType) {
+            let score = 0;
+            
+            switch (gameType) {
+                case 'dlt':
+                case 'ssq':
+                    combination.red.forEach(num => {
+                        score += (frequencies.redFreq[num] || 0);
+                    });
+                    combination.blue.forEach(num => {
+                        score += (frequencies.blueFreq[num] || 0);
+                    });
+                    break;
+                case 'kl8':
+                    combination.all.forEach(num => {
+                        score += (frequencies.allFreq[num] || 0);
+                    });
+                    break;
+                case 'qxz':
+                    result.digits.forEach(num => {
+                        score += (frequencies.allFreq[num] || 0);
+                    });
+                    break;
+            }
+            
+            return score;
+        }
+
+        // 显示结果
+        function displayResults(frequencies, gameType, sampleResults) {
+            const redProbabilityBody = document.getElementById('redProbabilityBody');
+            const blueProbabilityBody = document.getElementById('blueProbabilityBody');
+            const allProbabilityBody = document.getElementById('allProbabilityBody');
+            const sampleCombinationsDiv = document.getElementById('sampleCombinations');
+            const topKResultsDiv = document.getElementById('topKResults');
+            
+            // 清空之前的内容
+            redProbabilityBody.innerHTML = '';
+            blueProbabilityBody.innerHTML = '';
+            allProbabilityBody.innerHTML = '';
+            sampleCombinationsDiv.innerHTML = '';
+            topKResultsDiv.innerHTML = '';
+
+            // 显示红球概率（除快乐8和七星彩外）
+            if (gameType !== 'kl8' && gameType !== 'qxz') {
+                Object.entries(frequencies.redFreq)
+                    .sort(([,a], [,b]) => b - a)
+                    .forEach(([num, count]) => {
+                        const probability = count / sampleResults.length;
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${num}</td>
+                            <td>${count}</td>
+                            <td>${(probability * 100).toFixed(4)}%</td>
+                        `;
+                        redProbabilityBody.appendChild(row);
+                    });
+            } else {
+                redProbabilityBody.innerHTML = '<tr><td colspan="3">该游戏不分红球</td></tr>';
+            }
+
+            // 显示蓝球概率（除快乐8和七星彩外）
+            if (gameType !== 'kl8' && gameType !== 'qxz') {
+                Object.entries(frequencies.blueFreq)
+                    .sort(([,a], [,b]) => b - a)
+                    .forEach(([num, count]) => {
+                        const probability = count / sampleResults.length;
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${num}</td>
+                            <td>${count}</td>
+                            <td>${(probability * 100).toFixed(4)}%</td>
+                        `;
+                        blueProbabilityBody.appendChild(row);
+                    });
+            } else {
+                blueProbabilityBody.innerHTML = '<tr><td colspan="3">该游戏不分蓝球</td></tr>';
+            }
+
+            // 显示所有号码概率（快乐8和七星彩）
+            if (gameType === 'kl8' || gameType === 'qxz') {
+                Object.entries(frequencies.allFreq)
+                    .sort(([,a], [,b]) => b - a)
+                    .forEach(([num, count]) => {
+                        let denominator;
+                        if (gameType === 'kl8') {
+                            const kl8Rule = gameRules.kl8.options[currentKl8Option];
+                            denominator = sampleResults.length * kl8Rule.count;
+                        } else { // 七星彩
+                            denominator = sampleResults.length * gameRules.qxz.digits.count;
+                        }
+                        
+                        const probability = count / denominator;
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${num}</td>
+                            <td>${count}</td>
+                            <td>${(probability * 100).toFixed(4)}%</td>
+                        `;
+                        allProbabilityBody.appendChild(row);
+                    });
+            } else {
+                // 对于其他游戏，显示所有号码的总概率
+                Object.entries(frequencies.allFreq)
+                    .sort(([,a], [,b]) => b - a)
+                    .forEach(([num, count]) => {
+                        const probability = count / (sampleResults.length * (gameType === 'dlt' ? 7 : 7)); // 7是总球数
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${num}</td>
+                            <td>${count}</td>
+                            <td>${(probability * 100).toFixed(4)}%</td>
+                        `;
+                        allProbabilityBody.appendChild(row);
+                    });
+            }
+
+            // 显示样本组合
+            const topSamples = sampleResults.slice(0, 5); // 减少移动端显示数量
+            topSamples.forEach((combo, index) => {
+                const comboDiv = document.createElement('div');
+                comboDiv.style.marginBottom = '10px';
+                comboDiv.innerHTML = `#${index + 1}: ${formatCombination(combo, gameType)}`;
+                sampleCombinationsDiv.appendChild(comboDiv);
+            });
+
+            // 计算Top-K（基于频率得分）
+            const topK = parseInt(document.getElementById('topK').value);
+            const scoredResults = sampleResults.map(result => ({
+                combination: result,
+                score: calculateCombinationScore(result, frequencies, gameType)
+            })).sort((a, b) => b.score - a.score).slice(0, topK);
+
+            // 显示Top-K
+            scoredResults.forEach((item, index) => {
+                const comboDiv = document.createElement('div');
+                comboDiv.style.marginBottom = '15px';
+                comboDiv.innerHTML = `
+                    <strong>#${index + 1} (评分: ${item.score.toFixed(2)})</strong><br>
+                    ${formatCombination(item.combination, gameType)}
+                `;
+                topKResultsDiv.appendChild(comboDiv);
+            });
+        }
+
+        // 格式化组合显示
+        function formatCombination(combination, gameType) {
+            switch (gameType) {
+                case 'dlt':
+                    return `
+                        <div style="margin: 5px 0;">
+                            <span style="display:block; margin-bottom: 5px;">红球: </span>
+                            ${combination.red.map(n => `<span class="number red-number">${n}</span>`).join('')}
+                        </div>
+                        <div style="margin: 5px 0;">
+                            <span style="display:block; margin-bottom: 5px;">蓝球: </span>
+                            ${combination.blue.map(n => `<span class="number blue-number">${n}</span>`).join('')}
+                        </div>
+                    `;
+                case 'ssq':
+                    return `
+                        <div style="margin: 5px 0;">
+                            <span style="display:block; margin-bottom: 5px;">红球: </span>
+                            ${combination.red.map(n => `<span class="number red-number">${n}</span>`).join('')}
+                        </div>
+                        <div style="margin: 5px 0;">
+                            <span style="display:block; margin-bottom: 5px;">蓝球: </span>
+                            <span class="number blue-number">${combination.blue[0]}</span>
+                        </div>
+                    `;
+                case 'kl8':
+                    return `<div>快乐8选${currentKl8Option}: ${combination.all.map(n => `<span class="number">${n}</span>`).join('')}</div>`;
+                case 'qxz':
+                    return `<div>七星彩: ${combination.digits.map(n => `<span class="number">${n}</span>`).join('')}</div>`;
+                default:
+                    return JSON.stringify(combination);
+            }
+        }
+
+        // 主分析函数
+        async function startAnalysis() {
+            const gameType = document.getElementById('gameType').value;
+            const markovIterations = parseInt(document.getElementById('markovIterations').value);
+            const monteCarloIterations = parseInt(document.getElementById('monteCarloIterations').value);
+            const crfEnabled = document.getElementById('crfToggle').checked;
+            const lstmLayers = parseInt(document.getElementById('lstmLayers').value);
+            
+            // 清空之前的进度
+            document.getElementById('progressFill').style.width = '0%';
+            
+            // 执行马尔科夫链模拟
+            console.log(`执行马尔科夫链模拟，次数: ${markovIterations}`);
+            const markovResults = markovChainSimulation(gameType, markovIterations);
+            
+            // 执行蒙特卡洛模拟
+            console.log(`执行蒙特卡洛模拟，次数: ${monteCarloIterations}`);
+            const monteCarloResults = monteCarloSimulation(gameType, monteCarloIterations);
+            
+            // 合并结果
+            const allResults = [...markovResults, ...monteCarloResults];
+            
+            // 分析频率
+            const frequencies = analyzeFrequencies(allResults, gameType);
+            
+            // 显示结果
+            displayResults(frequencies, gameType, allResults);
+            
+            // 更新进度条完成
+            setTimeout(() => {
+                document.getElementById('progressFill').style.width = '100%';
+                setTimeout(() => {
+                    document.getElementById('progressFill').style.width = '0%';
+                }, 500);
+            }, 100);
+            
+            console.log(`分析完成！游戏类型: ${gameRules[gameType].name}`);
+            console.log(`快乐8选项: ${gameType === 'kl8' ? '选' + currentKl8Option : 'N/A'}`);
+            console.log(`LSTM层数: ${lstmLayers}`);
+            console.log(`CRF启用: ${crfEnabled}`);
+            console.log(`总模拟次数: ${allResults.length}`);
+        }
+    </script>
+</body>
 </html>
